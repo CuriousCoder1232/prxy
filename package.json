@@ -1,0 +1,6 @@
+{
+  "dependencies": {
+    "corrosion": "^1.0.0",
+    "express": "^4.17.2"
+  }
+}
