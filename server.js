@@ -1,19 +1,24 @@
-const http = require('http'),
-https = require('https'),
-fs = require('fs'),
-config = require('./config.json'),
-Corrosion = require('corrosion'),
-express = require('express')
+const https = require('https');
+const fs = require('fs');
+const path = require('path');
+const Corrosion = require('corrosion');
+
+const ssl = {
+    key: fs.readFileSync(path.join(__dirname, '/ssl/ssl.key')),
+    cert: fs.readFileSync(path.join(__dirname, '/ssl/ssl.cert')),
+};
+const server = https.createServer(ssl);
 const proxy = new Corrosion({
-    prefix: config.prefix,
-    codec: 'xor'
-})
-const app = express()
-const thesite = (req,res)=>{
-    if(req.url.startsWith(config.prefix)) return proxy.request(req,res)
-    req.pathname = req.url.split('#')[0].split('?')[0]
-    req.query = {}
-}
-app.use('/',express.static(__dirname+'/public'))
-app.use('/',thesite)
-app.listen(process.env.PORT||config.port,()=>{console.log(`prxy is running at http://localhost:${config.port}`)})
+    codec: 'xor',
+    prefix: '/get/',
+    cookie: 'true',
+    ws: 'true',
+    title: 'index.html'
+});
+
+proxy.bundleScripts();
+
+server.on('request', (request, response) => {
+    if (request.url.startsWith(proxy.prefix)) return proxy.request(request, response);
+    response.end(fs.readFileSync(__dirname + '/public/index.html', 'utf-8'));
+}).on('upgrade', (clientRequest, clientSocket, clientHead) => proxy.upgrade(clientRequest, clientSocket, clientHead)).listen(8080);
