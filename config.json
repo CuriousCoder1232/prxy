@@ -1,0 +1,8 @@
+{
+    "port": "8080",
+    "ssl": true,
+    "prefix": "/get/",
+    "codec": "xor",
+    "localAddresses": [],
+    "blockedHostnames": []
+}
